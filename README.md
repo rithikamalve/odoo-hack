@@ -1,7 +1,5 @@
 # AssetFlow — Enterprise Asset & Resource Management System
 
-A hackathon-ready build in pure Python (Flask + SQLite, no external DB needed).
-
 ## Setup (takes ~1 minute)
 
 ```bash
@@ -64,7 +62,7 @@ assetflow/
 └── static/qr/               # auto-generated QR images (created at runtime)
 ```
 
-## Known trims (due to 4-hour scope)
+## Known trims
 
 Left out to keep the build fully working rather than partially built:
 maintenance approval workflow, audit cycles, transfer-request workflow,
