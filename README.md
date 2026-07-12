@@ -62,10 +62,3 @@ assetflow/
 └── static/qr/               # auto-generated QR images (created at runtime)
 ```
 
-## Known trims
-
-Left out to keep the build fully working rather than partially built:
-maintenance approval workflow, audit cycles, transfer-request workflow,
-department hierarchy, reports/analytics exports, activity logs. These map
-cleanly onto the existing schema and are natural "next steps" to mention
-in the pitch.
