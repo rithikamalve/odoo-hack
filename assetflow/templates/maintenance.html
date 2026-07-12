@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Maintenance - AssetFlow{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Maintenance Management</h4>
+  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#raiseModal">
+    <i class="fa-solid fa-plus"></i> Raise Maintenance Request
+  </button>
+</div>
+
+<div class="row g-2 flex-nowrap" style="overflow-x:auto;">
+  {% for stage in stages %}
+  <div class="col-md-2" style="min-width:220px;">
+    <h6 class="text-center">{{ stage }} <span class="badge bg-secondary">{{ board[stage]|length }}</span></h6>
+    <div class="kanban-col">
+      {% for m in board[stage] %}
+      <div class="kanban-card priority-{{ m.priority }}">
+        <div class="d-flex justify-content-between">
+          <strong>{{ m.asset_tag }}</strong>
+          <span class="badge bg-light text-dark">{{ m.priority }}</span>
+        </div>
+        <div class="small text-muted">{{ m.asset_name }}</div>
+        <p class="small mb-1 mt-1">{{ m.issue_details }}</p>
+        {% if m.attachment_name %}<div class="small text-muted"><i class="fa-solid fa-paperclip"></i> {{ m.attachment_name }}</div>{% endif %}
+        {% if m.technician_name %}<div class="small"><i class="fa-solid fa-user-gear"></i> {{ m.technician_name }}</div>{% endif %}
+        <div class="small text-muted">Raised by {{ m.raised_by_name }}</div>
+
+        {% if current_user.role in ['Admin','AssetManager'] %}
+        <form method="POST" action="{{ url_for('maintenance_advance', req_id=m.id) }}" class="mt-2">
+          {% if stage == 'Pending' %}
+            <div class="d-flex gap-1">
+              <button type="submit" name="new_status" value="Approved" class="btn btn-sm btn-outline-success w-50">Approve</button>
+              <button type="submit" name="new_status" value="Rejected" class="btn btn-sm btn-outline-danger w-50">Reject</button>
+            </div>
+          {% elif stage == 'Approved' %}
+            <input type="text" name="technician_name" class="form-control form-control-sm mb-1" placeholder="Technician name" required>
+            <button type="submit" name="new_status" value="Technician Assigned" class="btn btn-sm btn-outline-primary w-100">Assign Technician</button>
+          {% elif stage == 'Technician Assigned' %}
+            <button type="submit" name="new_status" value="In Progress" class="btn btn-sm btn-outline-primary w-100">Start Work</button>
+          {% elif stage == 'In Progress' %}
+            <input type="text" name="resolution_notes" class="form-control form-control-sm mb-1" placeholder="Resolution notes">
+            <button type="submit" name="new_status" value="Resolved" class="btn btn-sm btn-outline-success w-100">Mark Resolved</button>
+          {% endif %}
+        </form>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="text-muted small text-center mt-3">Nothing here.</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+  <div class="col-md-2" style="min-width:220px;">
+    <h6 class="text-center text-danger">Rejected <span class="badge bg-secondary">{{ board['Rejected']|length }}</span></h6>
+    <div class="kanban-col">
+      {% for m in board['Rejected'] %}
+      <div class="kanban-card">
+        <strong>{{ m.asset_tag }}</strong>
+        <div class="small text-muted">{{ m.asset_name }}</div>
+        <p class="small mb-1 mt-1">{{ m.issue_details }}</p>
+      </div>
+      {% else %}
+      <p class="text-muted small text-center mt-3">Nothing here.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<p class="small text-muted mt-3">Approving a card moves the asset to Under Maintenance; resolving returns it to Available.</p>
+
+<div class="modal fade" id="raiseModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title">Raise Maintenance Request</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Asset</label>
+            <select name="asset_id" class="form-select" required>
+              <option value="">Select asset</option>
+              {% for a in assets %}
+              <option value="{{ a.id }}">{{ a.tag }} — {{ a.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Issue Details</label>
+            <textarea name="issue_details" class="form-control" rows="3" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Priority</label>
+            <select name="priority" class="form-select">
+              <option>Low</option>
+              <option selected>Medium</option>
+              <option>High</option>
+              <option>Critical</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Attachment (filename reference, optional)</label>
+            <input type="text" name="attachment_name" class="form-control" placeholder="e.g. photo_damage.jpg">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

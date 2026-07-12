@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ cycle.name }} - Audit - AssetFlow{% endblock %}
+{% block content %}
+<a href="{{ url_for('audit') }}" class="text-decoration-none">&larr; Back to Audits</a>
+
+<div class="card p-4 mt-3 mb-3">
+  <div class="d-flex justify-content-between align-items-start">
+    <div>
+      <h5 class="mb-1">{{ cycle.name }}</h5>
+      <p class="text-muted mb-1">{{ cycle.department_name or 'All departments' }} &bull; {{ cycle.location or 'No location set' }}</p>
+      <p class="text-muted mb-0 small">{{ cycle.start_date or '—' }} to {{ cycle.end_date or '—' }} &bull; Auditor: {{ cycle.auditor_name or '—' }}</p>
+    </div>
+    <div class="text-end">
+      <span class="badge {% if cycle.status=='Open' %}bg-success{% else %}bg-secondary{% endif %} mb-2">{{ cycle.status }}</span><br>
+      {% if cycle.status == 'Open' %}
+      <form method="POST" action="{{ url_for('audit_close', cycle_id=cycle.id) }}" onsubmit="return confirm('Lock this audit cycle? No further edits will be allowed.');">
+        <button class="btn btn-sm btn-outline-danger">Close & Lock Cycle</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if discrepancies %}
+<div class="alert alert-warning">
+  <strong>{{ discrepancies|length }} asset(s) flagged</strong> — discrepancy report generated automatically.
+  <ul class="mb-0 mt-2">
+    {% for d in discrepancies %}
+    <li>{{ d.asset_tag }} — {{ d.asset_name }}: <strong>{{ d.verification_status }}</strong>{% if d.notes %} ({{ d.notes }}){% endif %}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="card p-3">
+  <h6>Verification Checklist</h6>
+  <table class="table table-sm align-middle">
+    <thead><tr><th>Asset</th><th>Category</th><th>Status</th><th>Notes</th>{% if cycle.status=='Open' %}<th></th>{% endif %}</tr></thead>
+    <tbody>
+    {% for i in items %}
+      <tr>
+        <td>{{ i.asset_tag }} — {{ i.asset_name }}</td>
+        <td>{{ i.asset_category }}</td>
+        <td><span class="badge badge-status-{{ i.verification_status }}">{{ i.verification_status }}</span></td>
+        <td>{{ i.notes or '—' }}</td>
+        {% if cycle.status == 'Open' %}
+        <td>
+          <form method="POST" action="{{ url_for('audit_verify_item', cycle_id=cycle.id, item_id=i.id) }}" class="d-flex gap-1">
+            <select name="verification_status" class="form-select form-select-sm">
+              <option value="Verified" {% if i.verification_status=='Verified' %}selected{% endif %}>Verified</option>
+              <option value="Missing" {% if i.verification_status=='Missing' %}selected{% endif %}>Missing</option>
+              <option value="Damaged" {% if i.verification_status=='Damaged' %}selected{% endif %}>Damaged</option>
+            </select>
+            <input type="text" name="notes" class="form-control form-control-sm" placeholder="Notes" value="{{ i.notes or '' }}">
+            <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">Save</button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="text-center text-muted py-3">No assets in this audit scope.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

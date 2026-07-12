@@ -60,4 +60,68 @@
     </div>
   </div>
 </div>
+
+<div class="row g-3 mt-1">
+  <div class="col-md-6">
+    <div class="card p-4">
+      <h6><i class="fa-solid fa-right-left"></i> Request a Transfer</h6>
+      <p class="small text-muted">Already allocated to someone else? Raise a transfer request instead: Requested &rarr; Approved &rarr; Reallocated.</p>
+      <form method="POST" action="{{ url_for('create_transfer_request') }}">
+        <div class="mb-3">
+          <label class="form-label">Asset (currently allocated)</label>
+          <select name="asset_id" class="form-select" required>
+            <option value="">Select allocated asset</option>
+            {% for a in allocated_assets %}
+            <option value="{{ a.id }}">{{ a.tag }} — {{ a.name }} (held by {{ a.holder_name }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Transfer To</label>
+          <select name="to_employee_id" class="form-select" required>
+            <option value="">Select employee</option>
+            {% for e in employees %}
+            <option value="{{ e.user.id }}">{{ e.user.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Reason</label>
+          <textarea name="reason" class="form-control" rows="2" placeholder="Why does this asset need to move?"></textarea>
+        </div>
+        <button type="submit" class="btn btn-outline-primary w-100">Submit Transfer Request</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card p-4">
+      <h6><i class="fa-solid fa-list-check"></i> Transfer Requests</h6>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Asset</th><th>From &rarr; To</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for t in transfer_requests %}
+          <tr>
+            <td>{{ t.asset_tag }}</td>
+            <td>{{ t.from_name or '—' }} &rarr; {{ t.to_name }}</td>
+            <td><span class="badge badge-status-{{ t.status }}">{{ t.status }}</span></td>
+            <td class="text-nowrap">
+              {% if t.status == 'Requested' %}
+              <form method="POST" action="{{ url_for('decide_transfer_request', req_id=t.id, action='approve') }}" class="d-inline">
+                <button class="btn btn-sm btn-outline-success">Approve</button>
+              </form>
+              <form method="POST" action="{{ url_for('decide_transfer_request', req_id=t.id, action='reject') }}" class="d-inline">
+                <button class="btn btn-sm btn-outline-danger">Reject</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="text-center text-muted py-3">No transfer requests yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {% endblock %}

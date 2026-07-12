@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Notifications - AssetFlow{% endblock %}
+{% block content %}
+<h4 class="mb-4">Notifications</h4>
+
+<div class="d-flex gap-2 flex-wrap mb-3">
+  {% for c in categories %}
+  <a href="{{ url_for('notifications', category=c) }}" class="btn btn-sm {% if filter_cat==c %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ c }}</a>
+  {% endfor %}
+</div>
+
+<div class="card p-3 mb-4">
+  <h6>My Notifications</h6>
+  {% if notifications %}
+  <table class="table table-sm align-middle mb-0">
+    <thead><tr><th>Message</th><th>Category</th><th>When</th></tr></thead>
+    <tbody>
+    {% for n in notifications %}
+      <tr>
+        <td>{% if n.link %}<a href="{{ n.link }}">{{ n.message }}</a>{% else %}{{ n.message }}{% endif %}</td>
+        <td><span class="badge bg-secondary">{{ n.category }}</span></td>
+        <td class="text-muted small">{{ n.created_at }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted mb-0">No notifications yet.</p>
+  {% endif %}
+</div>
+
+{% if current_user.role in ['Admin','AssetManager'] %}
+<div class="card p-3">
+  <h6><i class="fa-solid fa-clock-rotate-left"></i> Activity Logs (who / what / when)</h6>
+  {% if activity_logs %}
+  <table class="table table-sm align-middle mb-0">
+    <thead><tr><th>User</th><th>Action</th><th>Details</th><th>When</th></tr></thead>
+    <tbody>
+    {% for a in activity_logs %}
+      <tr>
+        <td>{{ a.user_name or 'System' }}</td>
+        <td>{{ a.action }}</td>
+        <td class="text-muted small">{{ a.details }}</td>
+        <td class="text-muted small">{{ a.created_at }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted mb-0">No activity recorded yet.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

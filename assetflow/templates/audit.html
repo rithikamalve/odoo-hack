@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Asset Audit - AssetFlow{% endblock %}
+{% block content %}
+<h4 class="mb-4">Asset Audit</h4>
+
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <h6>Start New Audit Cycle</h6>
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Audit Name</label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. Q3 audit: Engineering dept" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Department (leave blank for all assets)</label>
+          <select name="department_id" class="form-select">
+            <option value="">All departments</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}">{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Location</label>
+          <input type="text" name="location" class="form-control" placeholder="e.g. Bengaluru HQ, Floor 2">
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label">Start Date</label>
+            <input type="date" name="start_date" class="form-control">
+          </div>
+          <div class="col-6">
+            <label class="form-label">End Date</label>
+            <input type="date" name="end_date" class="form-control">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Auditor</label>
+          <select name="auditor_id" class="form-select">
+            {% for a in auditors %}
+            <option value="{{ a.id }}" {% if current_user.id==a.id %}selected{% endif %}>{{ a.name }} ({{ a.role }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Create Audit Cycle</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="card p-3">
+      <h6>Audit Cycles</h6>
+      <table class="table table-sm align-middle">
+        <thead><tr><th>Name</th><th>Dept</th><th>Auditor</th><th>Progress</th><th>Discrepancies</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for c in cycles %}
+          <tr>
+            <td><a href="{{ url_for('audit_detail', cycle_id=c.id) }}">{{ c.name }}</a></td>
+            <td>{{ c.department_name or 'All' }}</td>
+            <td>{{ c.auditor_name or '—' }}</td>
+            <td>{{ c.done_items }}/{{ c.total_items }}</td>
+            <td>{% if c.discrepancies %}<span class="badge bg-danger">{{ c.discrepancies }}</span>{% else %}0{% endif %}</td>
+            <td><span class="badge {% if c.status=='Open' %}bg-success{% else %}bg-secondary{% endif %}">{{ c.status }}</span></td>
+            <td><a href="{{ url_for('audit_detail', cycle_id=c.id) }}" class="btn btn-sm btn-outline-primary">Open</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-3">No audit cycles yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

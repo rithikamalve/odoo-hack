@@ -31,6 +31,21 @@
 </div>
 
 <div class="row g-3 mb-4">
+  <div class="col-md-6 col-6">
+    <div class="kpi-card kpi-3">
+      <div class="small">Pending Transfers</div>
+      <div class="kpi-value">{{ kpis.pending_transfers }}</div>
+    </div>
+  </div>
+  <div class="col-md-6 col-6">
+    <div class="kpi-card kpi-4">
+      <div class="small">Open Maintenance Requests</div>
+      <div class="kpi-value">{{ kpis.open_maintenance }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
   <div class="col-12">
     <div class="card p-3">
       <h6><i class="fa-solid fa-bolt"></i> Quick Actions</h6>
@@ -38,9 +53,28 @@
         {% if current_user.role in ['Admin','AssetManager'] %}
         <a href="{{ url_for('assets') }}" class="btn btn-outline-primary btn-sm">Register Asset</a>
         <a href="{{ url_for('allocate') }}" class="btn btn-outline-primary btn-sm">Allocate Asset</a>
+        <a href="{{ url_for('audit') }}" class="btn btn-outline-primary btn-sm">Start Audit</a>
         {% endif %}
         <a href="{{ url_for('bookings') }}" class="btn btn-outline-primary btn-sm">Book Resource</a>
+        <a href="{{ url_for('maintenance') }}" class="btn btn-outline-primary btn-sm">Raise Maintenance Request</a>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card p-3">
+      <h6><i class="fa-solid fa-list"></i> Recent Activity</h6>
+      {% if recent_activity %}
+      <ul class="list-unstyled mb-0 small">
+        {% for r in recent_activity %}
+        <li class="mb-1">{{ r.user_name or 'System' }} — {{ r.action }}{% if r.details %}: {{ r.details }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted mb-0">No activity yet.</p>
+      {% endif %}
     </div>
   </div>
 </div>

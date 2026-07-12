@@ -32,7 +32,7 @@
 <div class="card p-3">
   <table class="table table-hover align-middle mb-0">
     <thead>
-      <tr><th>Tag</th><th>Name</th><th>Category</th><th>Status</th><th>Holder</th><th>Bookable</th><th></th></tr>
+      <tr><th>Tag</th><th>Name</th><th>Category</th><th>Department</th><th>Status</th><th>Holder</th><th>Bookable</th><th></th></tr>
     </thead>
     <tbody>
       {% for a in assets %}
@@ -40,6 +40,7 @@
         <td><a href="{{ url_for('asset_detail', asset_id=a.id) }}">{{ a.tag }}</a></td>
         <td>{{ a.name }}</td>
         <td>{{ a.category }}</td>
+        <td>{{ a.department_name or '—' }}</td>
         <td><span class="badge badge-status-{{ a.status.replace(' ','-') }}">{{ a.status }}</span></td>
         <td>{{ a.holder_name or '-' }}</td>
         <td>{% if a.bookable %}<i class="fa-solid fa-check text-success"></i>{% else %}-{% endif %}</td>
@@ -48,7 +49,7 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="text-center text-muted py-4">No assets found.</td></tr>
+      <tr><td colspan="8" class="text-center text-muted py-4">No assets found.</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -71,11 +72,18 @@
           <div class="mb-3">
             <label class="form-label">Category</label>
             <select name="category" class="form-select" required>
-              <option>Electronics</option>
-              <option>Furniture</option>
-              <option>Vehicle</option>
-              <option>Room</option>
-              <option>Other</option>
+              {% for c in categories %}
+              <option>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Department</label>
+            <select name="department_id" class="form-select">
+              <option value="">— Unassigned —</option>
+              {% for d in departments %}
+              <option value="{{ d.id }}">{{ d.name }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="mb-3">

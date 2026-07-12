@@ -26,6 +26,25 @@
   .badge-status-Ongoing { background:#20c997; }
   .badge-status-Completed { background:#868e96; }
   .badge-status-Cancelled { background:#e03131; }
+  .badge-status-Requested { background:#f08c00; }
+  .badge-status-Approved { background:#2c8ef0; }
+  .badge-status-Reallocated { background:#20c997; }
+  .badge-status-Rejected { background:#e03131; }
+  .badge-status-Pending { background:#f08c00; }
+  .badge-status-Technician-Assigned { background:#845ef7; }
+  .badge-status-In-Progress { background:#2c8ef0; }
+  .badge-status-Resolved { background:#20c997; }
+  .badge-status-Missing { background:#e03131; }
+  .badge-status-Damaged { background:#f08c00; }
+  .badge-status-Verified { background:#20c997; }
+  .badge-status-Under-Maintenance { background:#f08c00; }
+  .badge-status-Lost { background:#e03131; }
+  .kanban-col { min-height:400px; background:#eef1f6; border-radius:12px; padding:.75rem; }
+  .kanban-card { background:#fff; border-radius:10px; padding:.75rem; margin-bottom:.6rem; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .priority-Critical { border-left:4px solid #e03131; }
+  .priority-High { border-left:4px solid #f08c00; }
+  .priority-Medium { border-left:4px solid #2c8ef0; }
+  .priority-Low { border-left:4px solid #868e96; }
   .trust-score { font-weight:700; }
   .trust-high { color:#0f9c76; }
   .trust-mid { color:#f08c00; }
@@ -46,11 +65,27 @@
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav me-auto">
         <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+        {% if current_user.role == 'Admin' %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('org_setup') }}">Organization Setup</a></li>
+        {% endif %}
         <li class="nav-item"><a class="nav-link" href="{{ url_for('assets') }}">Assets</a></li>
         {% if current_user.role in ['Admin','AssetManager'] %}
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('allocate') }}">Allocate</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('allocate') }}">Allocation & Transfer</a></li>
         {% endif %}
         <li class="nav-item"><a class="nav-link" href="{{ url_for('bookings') }}">Bookings</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('maintenance') }}">Maintenance</a></li>
+        {% if current_user.role in ['Admin','AssetManager'] %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('audit') }}">Audit</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}">Reports</a></li>
+        {% endif %}
+        <li class="nav-item">
+          <a class="nav-link position-relative" href="{{ url_for('notifications') }}">
+            <i class="fa-solid fa-bell"></i>
+            {% if unread_notifications %}
+            <span class="badge rounded-pill bg-danger">{{ unread_notifications }}</span>
+            {% endif %}
+          </a>
+        </li>
       </ul>
       <span class="navbar-text me-3">
         <i class="fa-solid fa-user-circle"></i> {{ current_user.name }}

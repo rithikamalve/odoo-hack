@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Organization Setup - AssetFlow{% endblock %}
+{% block content %}
+<h4 class="mb-4">Organization Setup</h4>
+
+<ul class="nav nav-pills mb-3">
+  <li class="nav-item"><a class="nav-link {% if tab=='departments' %}active{% endif %}" href="{{ url_for('org_setup', tab='departments') }}">Departments</a></li>
+  <li class="nav-item"><a class="nav-link {% if tab=='categories' %}active{% endif %}" href="{{ url_for('org_setup', tab='categories') }}">Asset Categories</a></li>
+  <li class="nav-item"><a class="nav-link {% if tab=='employees' %}active{% endif %}" href="{{ url_for('org_setup', tab='employees') }}">Employees</a></li>
+</ul>
+
+{% if tab == 'departments' %}
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <h6>Add Department</h6>
+      <form method="POST" action="{{ url_for('org_departments') }}">
+        <input type="hidden" name="action" value="add">
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Department Head</label>
+          <select name="head_user_id" class="form-select">
+            <option value="">— None —</option>
+            {% for e in employees %}
+            <option value="{{ e.id }}">{{ e.name }} ({{ e.role }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Parent Department</label>
+          <select name="parent_id" class="form-select">
+            <option value="">— Top level —</option>
+            {% for d in all_departments %}
+            <option value="{{ d.id }}">{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Add Department</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card p-3">
+      <h6>Departments</h6>
+      <table class="table table-sm align-middle">
+        <thead><tr><th>Name</th><th>Head</th><th>Parent Dept</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for d in departments %}
+          <tr>
+            <td>
+              <form method="POST" action="{{ url_for('org_departments') }}" class="d-flex gap-1">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="dept_id" value="{{ d.id }}">
+                <input type="text" name="name" value="{{ d.name }}" class="form-control form-control-sm">
+            </td>
+            <td>
+                <select name="head_user_id" class="form-select form-select-sm">
+                  <option value="">—</option>
+                  {% for e in employees %}
+                  <option value="{{ e.id }}" {% if d.head_user_id==e.id %}selected{% endif %}>{{ e.name }}</option>
+                  {% endfor %}
+                </select>
+            </td>
+            <td>
+                <select name="parent_id" class="form-select form-select-sm">
+                  <option value="">—</option>
+                  {% for p in all_departments %}
+                    {% if p.id != d.id %}
+                    <option value="{{ p.id }}" {% if d.parent_id==p.id %}selected{% endif %}>{{ p.name }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+            </td>
+            <td><span class="badge {% if d.status=='Active' %}bg-success{% else %}bg-secondary{% endif %}">{{ d.status }}</span></td>
+            <td class="text-nowrap">
+                <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+              </form>
+              <form method="POST" action="{{ url_for('org_departments') }}" class="d-inline">
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="dept_id" value="{{ d.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">{% if d.status=='Active' %}Deactivate{% else %}Activate{% endif %}</button>
+              </form>
+              <form method="POST" action="{{ url_for('org_departments') }}" class="d-inline">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="dept_id" value="{{ d.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-center text-muted py-3">No departments yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <p class="small text-muted mb-0">Editing a department here also drives the picklist for asset registration and employee assignment.</p>
+    </div>
+  </div>
+</div>
+
+{% elif tab == 'categories' %}
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <h6>Add Asset Category</h6>
+      <form method="POST" action="{{ url_for('org_categories') }}">
+        <input type="hidden" name="action" value="add">
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Category-specific fields (comma separated)</label>
+          <input type="text" name="fields" class="form-control" placeholder="e.g. Serial Number, Warranty Expiry">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Add Category</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card p-3">
+      <h6>Asset Categories</h6>
+      <table class="table table-sm align-middle">
+        <thead><tr><th>Name</th><th>Custom Fields</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for c in categories %}
+          <tr>
+            <form method="POST" action="{{ url_for('org_categories') }}">
+              <input type="hidden" name="action" value="edit">
+              <input type="hidden" name="cat_id" value="{{ c.id }}">
+              <td><input type="text" name="name" value="{{ c.name }}" class="form-control form-control-sm"></td>
+              <td><input type="text" name="fields" value="{{ c.fields|join(', ') }}" class="form-control form-control-sm"></td>
+              <td><span class="badge {% if c.status=='Active' %}bg-success{% else %}bg-secondary{% endif %}">{{ c.status }}</span></td>
+              <td class="text-nowrap">
+                <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+            </form>
+              <form method="POST" action="{{ url_for('org_categories') }}" class="d-inline">
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="cat_id" value="{{ c.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">{% if c.status=='Active' %}Deactivate{% else %}Activate{% endif %}</button>
+              </form>
+              </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="text-center text-muted py-3">No categories yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="card p-3">
+  <h6>Employees & Role Assignment</h6>
+  <table class="table table-sm align-middle">
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th></th></tr></thead>
+    <tbody>
+    {% for e in employees %}
+      <tr>
+        <form method="POST" action="{{ url_for('org_employees') }}" class="d-flex align-items-center gap-2">
+          <input type="hidden" name="user_id" value="{{ e.id }}">
+          <td>{{ e.name }}</td>
+          <td>{{ e.email }}</td>
+          <td>
+            <select name="role" class="form-select form-select-sm">
+              {% for r in all_roles %}
+              <option value="{{ r }}" {% if e.role==r %}selected{% endif %}>{{ r }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <select name="department_id" class="form-select form-select-sm">
+              <option value="">— None —</option>
+              {% for d in all_departments %}
+              <option value="{{ d.id }}" {% if e.department_id==d.id %}selected{% endif %}>{{ d.name }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><button type="submit" class="btn btn-sm btn-outline-primary">Save</button></td>
+        </form>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

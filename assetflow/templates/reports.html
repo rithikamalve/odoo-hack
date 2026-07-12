@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Reports & Analytics - AssetFlow{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">Reports & Analytics</h4>
+  <a href="{{ url_for('reports_export') }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-file-export"></i> Export Report (CSV)</a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6>Utilization by Department</h6>
+      <canvas id="utilChart" height="180"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6>Maintenance Frequency (by month)</h6>
+      <canvas id="maintChart" height="180"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6>Most Used Assets (by bookings)</h6>
+      {% if most_used %}
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Asset</th><th>Bookings</th></tr></thead>
+        <tbody>
+        {% for m in most_used %}
+          <tr><td>{{ m.tag }} — {{ m.name }}</td><td>{{ m.booking_count }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="text-muted mb-0">No booking data yet.</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6>Idle Assets</h6>
+      {% if idle_assets %}
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Asset</th><th>Days Idle</th></tr></thead>
+        <tbody>
+        {% for a in idle_assets %}
+          <tr><td>{{ a.tag }} — {{ a.name }}</td><td>{{ a.days_since_registered }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="text-muted mb-0">No idle assets right now.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6>Department-wise Allocation</h6>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Department</th><th>Total Assets</th><th>Allocated</th></tr></thead>
+        <tbody>
+        {% for d in dept_allocation %}
+          <tr><td>{{ d.department }}</td><td>{{ d.total }}</td><td>{{ d.allocated }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6>Upcoming / Open Maintenance</h6>
+      {% if upcoming_maintenance %}
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Asset</th><th>Priority</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for m in upcoming_maintenance %}
+          <tr><td>{{ m.asset_tag }} — {{ m.asset_name }}</td><td>{{ m.priority }}</td><td>{{ m.status }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="text-muted mb-0">No open maintenance requests.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card p-3">
+  <h6>Resource Booking Heatmap (day / hour)</h6>
+  <canvas id="heatmapChart" height="120"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+const utilLabels = {{ dept_allocation | map(attribute='department') | list | tojson }};
+const utilTotal = {{ dept_allocation | map(attribute='total') | list | tojson }};
+const utilAllocated = {{ dept_allocation | map(attribute='allocated') | list | tojson }};
+
+new Chart(document.getElementById('utilChart'), {
+  type: 'bar',
+  data: {
+    labels: utilLabels,
+    datasets: [
+      { label: 'Total', data: utilTotal, backgroundColor: '#2c8ef0' },
+      { label: 'Allocated', data: utilAllocated, backgroundColor: '#20c997' }
+    ]
+  },
+  options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+const maintLabels = {{ maintenance_by_month | map(attribute='month') | list | tojson }};
+const maintData = {{ maintenance_by_month | map(attribute='c') | list | tojson }};
+
+new Chart(document.getElementById('maintChart'), {
+  type: 'line',
+  data: {
+    labels: maintLabels,
+    datasets: [{ label: 'Maintenance Requests', data: maintData, borderColor: '#e03131', tension: 0.3 }]
+  },
+  options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+const heatmapData = {{ heatmap | safe }};
+const heatLabels = Object.keys(heatmapData);
+const heatValues = Object.values(heatmapData);
+new Chart(document.getElementById('heatmapChart'), {
+  type: 'bar',
+  data: {
+    labels: heatLabels,
+    datasets: [{ label: 'Bookings', data: heatValues, backgroundColor: '#845ef7' }]
+  },
+  options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+</script>
+{% endblock %}
