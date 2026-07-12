@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Sign Up - AssetFlow{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <h3 class="mb-1 text-center"><i class="fa-solid fa-user-plus"></i> Create Account</h3>
+      <p class="text-center text-muted mb-4">Signup creates an Employee account. Admins promote roles later.</p>
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-control" required autofocus>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+      </form>
+      <p class="text-center mt-3 mb-0">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

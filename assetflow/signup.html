@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Bookings - AssetFlow{% endblock %}
+{% block content %}
+<h4 class="mb-4">Resource Bookings</h4>
+
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <h6>Book a Shared Resource</h6>
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Resource</label>
+          <select name="asset_id" class="form-select" required>
+            <option value="">Select bookable resource</option>
+            {% for a in bookable_assets %}
+            <option value="{{ a.id }}">{{ a.tag }} — {{ a.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Start Time</label>
+          <input type="datetime-local" name="start_time" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">End Time</label>
+          <input type="datetime-local" name="end_time" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Book</button>
+      </form>
+      <p class="small text-muted mt-2 mb-0">Overlapping time slots for the same resource are automatically rejected.</p>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="card p-4">
+      <h6>All Bookings</h6>
+      <table class="table table-sm align-middle mb-0">
+        <thead><tr><th>Resource</th><th>By</th><th>Start</th><th>End</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for b in bookings %}
+          <tr>
+            <td>{{ b.asset_tag }} — {{ b.asset_name }}</td>
+            <td>{{ b.employee_name }}</td>
+            <td>{{ b.start_time }}</td>
+            <td>{{ b.end_time }}</td>
+            <td><span class="badge badge-status-{{ b.status }}">{{ b.status }}</span></td>
+            <td>
+              {% if b.status in ['Upcoming','Ongoing'] and (b.employee_id == current_user.id or current_user.role in ['Admin','AssetManager']) %}
+              <form method="POST" action="{{ url_for('cancel_booking', booking_id=b.id) }}">
+                <button class="btn btn-sm btn-outline-danger">Cancel</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No bookings yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
